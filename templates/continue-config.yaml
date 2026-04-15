@@ -1,0 +1,31 @@
+{{- if .Values.continuedev.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ai-workspace.notebookName" . }}-continue
+  labels:
+    {{- include "ai-workspace.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    name: RHOAI Coding Agent
+    version: 1.0.0
+    schema: v1
+    models:
+      - name: {{ include "ai-workspace.modelDisplayName" . | trim }}
+        provider: openai
+        model: {{ .Values.aiModel.name }}
+        apiBase: http://{{ .Values.aiModel.name }}-predictor:8080/v1
+        roles:
+          - chat
+          - edit
+          - apply
+          - autocomplete
+        defaultCompletionOptions:
+          contextLength: {{ include "ai-workspace.modelContextLength" . | trim }}
+          temperature: {{ .Values.continuedev.temperature }}
+    context:
+      - provider: file
+      - provider: code
+      - provider: diff
+      - provider: terminal
+{{- end }}

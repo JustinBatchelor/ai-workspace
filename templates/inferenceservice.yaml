@@ -1,0 +1,40 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: {{ .Values.aiModel.name }}
+  labels:
+    opendatahub.io/dashboard: "true"
+    networking.kserve.io/visibility: exposed
+    {{- include "ai-workspace.labels" . | nindent 4 }}
+  annotations:
+    openshift.io/display-name: {{ .Values.aiModel.name }}
+    opendatahub.io/hardware-profile-name: {{ .Values.hardwareProfile.name }}
+    opendatahub.io/hardware-profile-namespace: {{ .Values.hardwareProfile.namespace }}
+    opendatahub.io/model-type: generative
+    serving.kserve.io/deploymentMode: RawDeployment
+    security.opendatahub.io/enable-auth: "false"
+spec:
+  predictor:
+    maxReplicas: 1
+    minReplicas: 1
+    model:
+      modelFormat:
+        name: vLLM
+      name: ""
+      resources:
+        limits:
+          cpu: {{ include "ai-workspace.modelCpu" . | quote }}
+          memory: {{ include "ai-workspace.modelMemory" . }}
+          nvidia.com/gpu: {{ include "ai-workspace.modelGpu" . | quote }}
+        requests:
+          cpu: {{ include "ai-workspace.modelCpu" . | quote }}
+          memory: {{ include "ai-workspace.modelMemory" . }}
+          nvidia.com/gpu: {{ include "ai-workspace.modelGpu" . | quote }}
+      runtime: vllm-runtime
+      storageUri: {{ include "ai-workspace.modelStorageUri" . | quote }}
+    nodeSelector:
+      {{- toYaml .Values.nodeSelector | nindent 6 }}
+    tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists

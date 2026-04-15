@@ -1,0 +1,146 @@
+{{- $nbName  := include "ai-workspace.notebookName" . -}}
+{{- $pvcName := include "ai-workspace.pvcName" . -}}
+{{- $ns      := include "ai-workspace.namespace" . -}}
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: {{ $nbName }}
+  labels:
+    app: {{ $nbName }}
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/odh-managed: "true"
+    opendatahub.io/user: {{ .Values.username }}
+    {{- include "ai-workspace.labels" . | nindent 4 }}
+  annotations:
+    notebooks.opendatahub.io/inject-auth: "true"
+    notebooks.opendatahub.io/last-image-selection: "code-server-notebook:{{ .Values.workbench.imageTag }}"
+    opendatahub.io/hardware-profile-name: default-profile
+    opendatahub.io/hardware-profile-namespace: {{ .Values.hardwareProfile.namespace }}
+    opendatahub.io/username: {{ .Values.username }}
+spec:
+  template:
+    spec:
+      enableServiceLinks: false
+
+      initContainers:
+      # Clone the user's git repo into the PVC and set up Continue.dev config
+      - name: setup-workspace
+        image: {{ .Values.gitClone.image }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -e
+          WORKSPACE="/opt/app-root/src"
+          REPO_DIR="${WORKSPACE}/project"
+
+          # Clone the repo if it has not already been cloned
+          if [ ! -d "${REPO_DIR}/.git" ]; then
+            echo "Cloning {{ .Values.gitRepo }} (branch: {{ .Values.gitBranch }})..."
+            git clone --branch {{ .Values.gitBranch }} --single-branch \
+              {{ .Values.gitRepo | quote }} "${REPO_DIR}"
+          else
+            echo "Repository already cloned, skipping."
+          fi
+
+          {{- if .Values.continuedev.enabled }}
+          # Write Continue.dev configuration
+          mkdir -p "${WORKSPACE}/.continue"
+          cp /tmp/continue-config/config.yaml "${WORKSPACE}/.continue/config.yaml"
+          echo "Continue.dev config written."
+          {{- end }}
+        volumeMounts:
+        - name: workspace-pvc
+          mountPath: /opt/app-root/src
+        {{- if .Values.continuedev.enabled }}
+        - name: continue-config
+          mountPath: /tmp/continue-config
+          readOnly: true
+        {{- end }}
+
+      containers:
+      - name: {{ $nbName }}
+        image: {{ .Values.workbench.image }}
+        imagePullPolicy: Always
+        env:
+        - name: NOTEBOOK_ARGS
+          value: |-
+            --ServerApp.port=8888
+                              --ServerApp.token=''
+                              --ServerApp.password=''
+                              --ServerApp.base_url=/notebook/{{ $ns }}/{{ $nbName }}
+                              --ServerApp.quit_button=False
+        - name: JUPYTER_IMAGE
+          value: {{ .Values.workbench.image }}
+        - name: JUPYTER_NOTEBOOK_PORT
+          value: "8888"
+        - name: MODEL_ENDPOINT
+          value: "http://{{ .Values.aiModel.name }}-predictor:8080"
+        - name: MODEL_NAME
+          value: {{ .Values.aiModel.name | quote }}
+        - name: PIP_CERT
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: REQUESTS_CA_BUNDLE
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: SSL_CERT_FILE
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: PIPELINES_SSL_SA_CERTS
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        ports:
+        - containerPort: 8888
+          name: notebook-port
+          protocol: TCP
+        resources:
+          requests:
+            cpu: {{ .Values.workbench.resources.requests.cpu | quote }}
+            memory: {{ .Values.workbench.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.workbench.resources.limits.cpu | quote }}
+            memory: {{ .Values.workbench.resources.limits.memory }}
+        livenessProbe:
+          httpGet:
+            path: /notebook/{{ $ns }}/{{ $nbName }}/api
+            port: notebook-port
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /notebook/{{ $ns }}/{{ $nbName }}/api
+            port: notebook-port
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /opt/app-root/src
+          name: workspace-pvc
+        - mountPath: /dev/shm
+          name: shm
+        - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+          name: trusted-ca
+          readOnly: true
+          subPath: ca-bundle.crt
+        workingDir: /opt/app-root/src
+
+      volumes:
+      - name: workspace-pvc
+        persistentVolumeClaim:
+          claimName: {{ $pvcName }}
+      - name: shm
+        emptyDir:
+          medium: Memory
+      - name: trusted-ca
+        configMap:
+          name: workbench-trusted-ca-bundle
+          items:
+          - key: ca-bundle.crt
+            path: ca-bundle.crt
+          optional: true
+      {{- if .Values.continuedev.enabled }}
+      - name: continue-config
+        configMap:
+          name: {{ $nbName }}-continue
+      {{- end }}

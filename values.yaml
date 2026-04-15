@@ -1,0 +1,72 @@
+username: ""
+gitRepo: ""
+gitBranch: "main"
+
+# ---------- Model serving ----------
+aiModel:
+  # Key into the modelCatalog below, or set explicit overrides
+  name: "qwen25-coder-14b"
+  # Override storageUri / resources when the model is not in the catalog
+  storageUri: ""
+  cpu: ""
+  memory: ""
+  gpu: ""
+
+modelCatalog:
+  qwen25-coder-14b:
+    displayName: "Qwen 2.5 Coder 14B (AWQ)"
+    storageUri: "hf://Qwen/Qwen2.5-Coder-14B-Instruct-AWQ"
+    cpu: "4"
+    memory: "16Gi"
+    gpu: "1"
+    contextLength: 32768
+  qwen25-coder-7b:
+    displayName: "Qwen 2.5 Coder 7B"
+    storageUri: "hf://Qwen/Qwen2.5-Coder-7B-Instruct"
+    cpu: "4"
+    memory: "12Gi"
+    gpu: "1"
+    contextLength: 32768
+  qwen3-4b:
+    displayName: "Qwen 3 4B"
+    storageUri: "hf://Qwen/Qwen3-4B"
+    cpu: "4"
+    memory: "12Gi"
+    gpu: "1"
+    contextLength: 32768
+
+servingRuntime:
+  image: "registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ec799bb5eeb7e25b4b25a8917ab5161da6b6f1ab830cbba61bba371cffb0c34d"
+
+hardwareProfile:
+  name: "nvidia-a10g-gpu"
+  namespace: "redhat-ods-applications"
+
+nodeSelector:
+  gpu-node: "true"
+
+# ---------- Workbench ----------
+workbench:
+  image: "image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/code-server-notebook:2025.2"
+  imageTag: "2025.2"
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+# ---------- Storage ----------
+storage:
+  size: "20Gi"
+  storageClassName: "gp3"
+
+# ---------- Continue.dev ----------
+continuedev:
+  enabled: true
+  temperature: 0.7
+
+# ---------- Git clone ----------
+gitClone:
+  image: "alpine/git:latest"

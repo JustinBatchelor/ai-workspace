@@ -1,0 +1,11 @@
+apiVersion: v2
+name: ai-workspace
+description: Self-service AI-powered VS Code workspace backed by RHOAI model serving
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - openshift-ai
+  - vscode
+  - vllm
+  - coding-agent
