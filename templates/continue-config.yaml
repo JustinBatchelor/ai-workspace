@@ -15,11 +15,14 @@ data:
         provider: openai
         model: {{ .Values.aiModel.name }}
         apiBase: http://{{ .Values.aiModel.name }}-predictor:8080/v1
+        apiKey: EMPTY
         roles:
           - chat
           - edit
           - apply
           - autocomplete
+        capabilities:
+          - tool_use
         defaultCompletionOptions:
           contextLength: {{ include "ai-workspace.modelContextLength" . | trim }}
           temperature: {{ .Values.continuedev.temperature }}
