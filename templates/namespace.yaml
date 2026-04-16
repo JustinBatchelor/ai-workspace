@@ -1,0 +1,10 @@
+{{- $ns := include "ai-workspace.namespace" . -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  labels:
+    {{- include "ai-workspace.labels" . | nindent 4 }}
+    {{- if eq .Values.editor.type "devspace" }}
+    app.kubernetes.io/part-of: che.eclipse.org
+    {{- end }}
