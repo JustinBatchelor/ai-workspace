@@ -41,6 +41,7 @@ spec:
         cpuRequest: {{ .Values.devspaces.resources.requests.cpu | quote }}
         cpuLimit: {{ .Values.devspaces.resources.limits.cpu | quote }}
         mountSources: true
+        sourceMapping: /projects
         env:
         - name: MODEL_ENDPOINT
           value: "http://{{ .Values.aiModel.name }}-predictor:8080"
