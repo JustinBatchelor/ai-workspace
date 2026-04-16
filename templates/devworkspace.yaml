@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 spec:
-  started: true
+  started: false
   routingClass: che
   template:
     attributes:
