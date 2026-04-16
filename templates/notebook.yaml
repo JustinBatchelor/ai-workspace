@@ -57,6 +57,29 @@ spec:
           readOnly: true
         {{- end }}
 
+      {{- if .Values.continuedev.enabled }}
+      # Install the Continue.dev VS Code extension using the workbench image
+      - name: install-continue
+        image: {{ .Values.workbench.image }}
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -e
+          EXT_DIR="/opt/app-root/src/.local/share/code-server/extensions"
+          if ls "${EXT_DIR}"/continue.continue-* 1>/dev/null 2>&1; then
+            echo "Continue.dev extension already installed, skipping."
+          else
+            echo "Installing Continue.dev extension..."
+            code-server --install-extension Continue.continue \
+              --extensions-dir "${EXT_DIR}"
+            echo "Continue.dev extension installed."
+          fi
+        volumeMounts:
+        - name: workspace-pvc
+          mountPath: /opt/app-root/src
+      {{- end }}
+
       containers:
       - name: {{ $nbName }}
         image: {{ .Values.workbench.image }}
