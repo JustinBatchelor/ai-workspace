@@ -45,7 +45,24 @@ hardwareProfile:
 nodeSelector:
   gpu-node: "true"
 
-# ---------- Workbench ----------
+# ---------- Editor ----------
+# type: "workbench" (RHOAI Kubeflow Notebook) or "devspace" (Red Hat Dev Spaces DevWorkspace)
+editor:
+  type: "workbench"
+
+# ---------- Dev Spaces (only used when editor.type == "devspace") ----------
+devspaces:
+  image: "registry.redhat.io/devspaces/udi-rhel8:latest"
+  cheCodeEditorUri: "https://eclipse-che.github.io/che-plugin-registry/main/v3/plugins/che-incubator/che-code/latest/devfile.yaml"
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+
+# ---------- Workbench (only used when editor.type == "workbench") ----------
 workbench:
   image: "image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/code-server-notebook:2025.2"
   imageTag: "2025.2"

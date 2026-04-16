@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "ai-workspace.notebookName" . }}-continue
+  name: {{ include "ai-workspace.continueConfigName" . }}
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 data:

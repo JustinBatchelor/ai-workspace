@@ -6,17 +6,35 @@ Workspace namespace derived from the username.
 {{- end }}
 
 {{/*
-Notebook resource name.
+Notebook resource name (workbench editor).
 */}}
 {{- define "ai-workspace.notebookName" -}}
 codeserver-nb-{{ .Values.username }}
 {{- end }}
 
 {{/*
-PVC name tied to the notebook.
+DevWorkspace resource name (devspace editor).
+*/}}
+{{- define "ai-workspace.devworkspaceName" -}}
+devspace-{{ .Values.username }}
+{{- end }}
+
+{{/*
+PVC name tied to the notebook (workbench only; Dev Spaces manages its own storage).
 */}}
 {{- define "ai-workspace.pvcName" -}}
 codeserver-nb-{{ .Values.username }}-pvc
+{{- end }}
+
+{{/*
+Continue.dev ConfigMap name — works for both editor types.
+*/}}
+{{- define "ai-workspace.continueConfigName" -}}
+{{- if eq .Values.editor.type "devspace" -}}
+devspace-{{ .Values.username }}-continue
+{{- else -}}
+codeserver-nb-{{ .Values.username }}-continue
+{{- end -}}
 {{- end }}
 
 {{/*

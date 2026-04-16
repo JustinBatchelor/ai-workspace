@@ -1,3 +1,4 @@
+{{- if eq .Values.editor.type "workbench" }}
 {{- $nbName  := include "ai-workspace.notebookName" . -}}
 {{- $pvcName := include "ai-workspace.pvcName" . -}}
 {{- $ns      := include "ai-workspace.namespace" . -}}
@@ -165,5 +166,6 @@ spec:
       {{- if .Values.continuedev.enabled }}
       - name: continue-config
         configMap:
-          name: {{ $nbName }}-continue
+          name: {{ include "ai-workspace.continueConfigName" . }}
       {{- end }}
+{{- end }}

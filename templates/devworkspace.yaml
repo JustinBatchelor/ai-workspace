@@ -1,0 +1,76 @@
+{{- if eq .Values.editor.type "devspace" }}
+{{- $dwName := include "ai-workspace.devworkspaceName" . -}}
+{{- $continueConfigName := include "ai-workspace.continueConfigName" . -}}
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspace
+metadata:
+  name: {{ $dwName }}
+  labels:
+    {{- include "ai-workspace.labels" . | nindent 4 }}
+spec:
+  started: true
+  routingClass: che
+  template:
+    attributes:
+      controller.devfile.io/storage-type: per-user
+      pod-overrides:
+        spec:
+          volumes:
+          - name: continue-config
+            configMap:
+              name: {{ $continueConfigName }}
+    projects:
+    - name: project
+      git:
+        remotes:
+          origin: {{ .Values.gitRepo | quote }}
+        checkoutFrom:
+          revision: {{ .Values.gitBranch | quote }}
+    components:
+    - name: tools
+      attributes:
+        container-overrides:
+          volumeMounts:
+          - name: continue-config
+            mountPath: /tmp/continue-config
+            readOnly: true
+      container:
+        image: {{ .Values.devspaces.image }}
+        memoryRequest: {{ .Values.devspaces.resources.requests.memory }}
+        memoryLimit: {{ .Values.devspaces.resources.limits.memory }}
+        cpuRequest: {{ .Values.devspaces.resources.requests.cpu | quote }}
+        cpuLimit: {{ .Values.devspaces.resources.limits.cpu | quote }}
+        mountSources: true
+        env:
+        - name: MODEL_ENDPOINT
+          value: "http://{{ .Values.aiModel.name }}-predictor:8080"
+        - name: MODEL_NAME
+          value: {{ .Values.aiModel.name | quote }}
+    {{- if .Values.continuedev.enabled }}
+    commands:
+    - id: setup-continue
+      exec:
+        component: tools
+        commandLine: |
+          set -e
+          CONTINUE_DIR="${HOME}/.continue"
+          mkdir -p "${CONTINUE_DIR}"
+          cp /tmp/continue-config/config.yaml "${CONTINUE_DIR}/config.yaml"
+          echo "Continue.dev config written to ${CONTINUE_DIR}/config.yaml"
+
+          EXT_JSON="/projects/.vscode/extensions.json"
+          mkdir -p /projects/.vscode
+          cat > "${EXT_JSON}" << 'EXTEOF'
+          {
+            "recommendations": ["Continue.continue"]
+          }
+          EXTEOF
+          echo "VS Code extension recommendation written."
+    events:
+      postStart:
+      - setup-continue
+    {{- end }}
+  contributions:
+  - name: editor
+    uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
+{{- end }}
