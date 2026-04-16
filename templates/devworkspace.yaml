@@ -19,6 +19,7 @@ spec:
           - name: continue-config
             configMap:
               name: {{ $continueConfigName }}
+              defaultMode: 420
     projects:
     - name: project
       git:
@@ -59,14 +60,32 @@ spec:
           cp /tmp/continue-config/config.yaml "${CONTINUE_DIR}/config.yaml"
           echo "Continue.dev config written to ${CONTINUE_DIR}/config.yaml"
 
-          EXT_JSON="/projects/.vscode/extensions.json"
-          mkdir -p /projects/.vscode
-          cat > "${EXT_JSON}" << 'EXTEOF'
-          {
-            "recommendations": ["Continue.continue"]
-          }
-          EXTEOF
-          echo "VS Code extension recommendation written."
+          echo "Waiting for che-code to start..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3100/healthz > /dev/null 2>&1; then
+              echo "che-code is ready."
+              break
+            fi
+            sleep 2
+          done
+
+          RCLICMD=""
+          for candidate in \
+            /checode/checode-linux-libc/ubi9/bin/remote-cli/code-oss \
+            /checode/checode-linux-libc/ubi8/bin/remote-cli/code-oss; do
+            if [ -x "${candidate}" ]; then
+              RCLICMD="${candidate}"
+              break
+            fi
+          done
+
+          if [ -n "${RCLICMD}" ]; then
+            echo "Installing Continue.dev extension..."
+            "${RCLICMD}" --install-extension Continue.continue 2>/dev/null || true
+            echo "Continue.dev extension install attempted."
+          else
+            echo "code-oss CLI not found, skipping extension install."
+          fi
     events:
       postStart:
       - setup-continue
