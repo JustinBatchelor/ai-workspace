@@ -1,4 +1,4 @@
-{{- if eq .Values.editor.type "workbench" }}
+{{- if and .Values.editorDeployment.enabled (eq .Values.editor.type "workbench") }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
