@@ -1,4 +1,4 @@
-{{- if eq .Values.editor.type "devspace" }}
+{{- if and .Values.editorDeployment.enabled (eq .Values.editor.type "devspace") }}
 {{- $dwName := include "ai-workspace.devworkspaceName" . -}}
 {{- $continueConfigName := include "ai-workspace.continueConfigName" . -}}
 apiVersion: workspace.devfile.io/v1alpha2

@@ -6,6 +6,13 @@ gitBranch: "main"
 argocd:
   managedBy: "tenant-gitops"
 
+# ---------- Feature toggles ----------
+modelServing:
+  enabled: true
+
+editorDeployment:
+  enabled: true
+
 # ---------- Model serving ----------
 aiModel:
   # Key into the modelCatalog below, or set explicit overrides

@@ -1,4 +1,4 @@
-{{- if eq .Values.editor.type "workbench" }}
+{{- if and .Values.editorDeployment.enabled (eq .Values.editor.type "workbench") }}
 {{- $nbName  := include "ai-workspace.notebookName" . -}}
 {{- $pvcName := include "ai-workspace.pvcName" . -}}
 {{- $ns      := include "ai-workspace.namespace" . -}}

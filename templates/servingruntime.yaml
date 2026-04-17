@@ -1,3 +1,4 @@
+{{- if .Values.modelServing.enabled }}
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
@@ -39,3 +40,4 @@ spec:
   supportedModelFormats:
   - autoSelect: true
     name: vLLM
+{{- end }}
