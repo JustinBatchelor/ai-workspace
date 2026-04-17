@@ -32,3 +32,4 @@ data:
       - provider: diff
       - provider: terminal
 {{- end }}
+
