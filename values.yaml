@@ -2,6 +2,10 @@ username: ""
 gitRepo: ""
 gitBranch: "main"
 
+# ---------- ArgoCD ----------
+argocd:
+  managedBy: "tenant-gitops"
+
 # ---------- Model serving ----------
 aiModel:
   # Key into the modelCatalog below, or set explicit overrides
