@@ -32,9 +32,12 @@ spec:
       attributes:
         container-overrides:
           volumeMounts:
+          {{- if .Values.continuedev.enabled }}
           - name: continue-config
-            mountPath: /tmp/continue-config
-            readOnly: true
+            mountPath: /home/user/.continue/config.yaml
+            subPath: config.yaml
+            readOnly: false
+          {{- end }}
       container:
         image: {{ .Values.devspaces.image }}
         memoryRequest: {{ .Values.devspaces.resources.requests.memory }}
@@ -48,48 +51,10 @@ spec:
           value: "http://{{ .Values.aiModel.name }}-predictor:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
-    {{- if .Values.continuedev.enabled }}
-    commands:
-    - id: setup-continue
-      exec:
-        component: tools
-        commandLine: |
-          set -e
-          CONTINUE_DIR="${HOME}/.continue"
-          mkdir -p "${CONTINUE_DIR}"
-          cp /tmp/continue-config/config.yaml "${CONTINUE_DIR}/config.yaml"
-          echo "Continue.dev config written to ${CONTINUE_DIR}/config.yaml"
-
-          echo "Waiting for che-code to start..."
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:3100/healthz > /dev/null 2>&1; then
-              echo "che-code is ready."
-              break
-            fi
-            sleep 2
-          done
-
-          RCLICMD=""
-          for candidate in \
-            /checode/checode-linux-libc/ubi9/bin/remote-cli/code-oss \
-            /checode/checode-linux-libc/ubi8/bin/remote-cli/code-oss; do
-            if [ -x "${candidate}" ]; then
-              RCLICMD="${candidate}"
-              break
-            fi
-          done
-
-          if [ -n "${RCLICMD}" ]; then
-            echo "Installing Continue.dev extension..."
-            "${RCLICMD}" --install-extension Continue.continue 2>/dev/null || true
-            echo "Continue.dev extension install attempted."
-          else
-            echo "code-oss CLI not found, skipping extension install."
-          fi
-    events:
-      postStart:
-      - setup-continue
-    {{- end }}
+        {{- if .Values.continuedev.enabled }}
+        - name: DEFAULT_EXTENSIONS
+          value: "continue.continue"
+        {{- end }}
   contributions:
   - name: editor
     uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
