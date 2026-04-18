@@ -26,6 +26,17 @@ spec:
               name: {{ $continueConfigName }}
               defaultMode: 420
       {{- end }}
+    {{- if .Values.continuedev.enabled }}
+    commands:
+      - id: setup-continue-config
+        exec:
+          component: tools
+          commandLine: |
+            mkdir -p /home/user/.continue && cp /tmp/continue-config/config.yaml /home/user/.continue/config.yaml
+    events:
+      postStart:
+        - setup-continue-config
+    {{- end }}
     projects:
       - name: project
         git:
@@ -40,9 +51,9 @@ spec:
           container-overrides:
             volumeMounts:
             - name: continue-config
-              mountPath: /home/user/.continue/config.yaml
+              mountPath: /tmp/continue-config/config.yaml
               subPath: config.yaml
-              readOnly: false
+              readOnly: true
         {{- end }}
         container:
           image: {{ .Values.devspaces.image }}
