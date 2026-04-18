@@ -17,7 +17,7 @@ editorDeployment:
 # ---------- Model serving ----------
 aiModel:
   # Key into the modelCatalog below, or set explicit overrides
-  name: "qwen25-coder-14b"
+  name: "qwen3-coder-30b-a3b"
   # Override storageUri / resources when the model is not in the catalog
   storageUri: ""
   cpu: ""
@@ -25,6 +25,14 @@ aiModel:
   gpu: ""
 
 modelCatalog:
+  qwen3-coder-30b-a3b:
+    displayName: "Qwen 3 Coder 30B-A3B (AWQ)"
+    storageUri: "hf://QuantTrio/Qwen3-Coder-30B-A3B-Instruct-AWQ"
+    cpu: "4"
+    memory: "20Gi"
+    gpu: "1"
+    contextLength: 131072
+    toolCallParser: "qwen3_coder"
   qwen25-coder-14b:
     displayName: "Qwen 2.5 Coder 14B (AWQ)"
     storageUri: "hf://Qwen/Qwen2.5-Coder-14B-Instruct-AWQ"
@@ -32,6 +40,7 @@ modelCatalog:
     memory: "16Gi"
     gpu: "1"
     contextLength: 32768
+    toolCallParser: "hermes"
   qwen25-coder-7b:
     displayName: "Qwen 2.5 Coder 7B"
     storageUri: "hf://Qwen/Qwen2.5-Coder-7B-Instruct"
@@ -39,6 +48,7 @@ modelCatalog:
     memory: "12Gi"
     gpu: "1"
     contextLength: 32768
+    toolCallParser: "hermes"
   qwen3-4b:
     displayName: "Qwen 3 4B"
     storageUri: "hf://Qwen/Qwen3-4B"
@@ -46,6 +56,7 @@ modelCatalog:
     memory: "12Gi"
     gpu: "1"
     contextLength: 32768
+    toolCallParser: "hermes"
 
 servingRuntime:
   image: "registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ec799bb5eeb7e25b4b25a8917ab5161da6b6f1ab830cbba61bba371cffb0c34d"
@@ -95,7 +106,7 @@ storage:
 # ---------- Continue.dev ----------
 continuedev:
   enabled: true
-  temperature: 0.7
+  temperature: 0.3
 
 # ---------- Git clone ----------
 gitClone:

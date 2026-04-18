@@ -53,6 +53,7 @@ memory: {{ .Values.aiModel.memory | default "16Gi" | quote }}
 gpu: {{ .Values.aiModel.gpu | default "1" | quote }}
 contextLength: 32768
 displayName: {{ $name }}
+toolCallParser: hermes
 {{- end -}}
 {{- end }}
 
@@ -87,6 +88,11 @@ Shortcut helpers that pull individual fields from the resolved model spec.
 {{- define "ai-workspace.modelDisplayName" -}}
 {{- $spec := include "ai-workspace.modelSpec" . | fromYaml -}}
 {{ $spec.displayName | default .Values.aiModel.name }}
+{{- end }}
+
+{{- define "ai-workspace.modelToolCallParser" -}}
+{{- $spec := include "ai-workspace.modelSpec" . | fromYaml -}}
+{{ $spec.toolCallParser | default "hermes" }}
 {{- end }}
 
 {{/*
