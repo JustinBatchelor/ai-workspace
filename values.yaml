@@ -31,7 +31,8 @@ modelCatalog:
     cpu: "4"
     memory: "20Gi"
     gpu: "1"
-    contextLength: 131072
+    contextLength: 16384
+    maxModelLen: 16384
     toolCallParser: "qwen3_coder"
   qwen25-coder-14b:
     displayName: "Qwen 2.5 Coder 14B (AWQ)"

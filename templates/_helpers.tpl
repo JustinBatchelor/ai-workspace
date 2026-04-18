@@ -95,6 +95,11 @@ Shortcut helpers that pull individual fields from the resolved model spec.
 {{ $spec.toolCallParser | default "hermes" }}
 {{- end }}
 
+{{- define "ai-workspace.modelMaxModelLen" -}}
+{{- $spec := include "ai-workspace.modelSpec" . | fromYaml -}}
+{{ $spec.maxModelLen | default 0 }}
+{{- end }}
+
 {{/*
 Common labels applied to every resource.
 */}}

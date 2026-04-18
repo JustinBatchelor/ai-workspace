@@ -24,6 +24,10 @@ spec:
     - "--served-model-name={{`{{.Name}}`}}"
     - --enable-auto-tool-choice
     - "--tool-call-parser={{ include "ai-workspace.modelToolCallParser" . | trim }}"
+    {{- $maxLen := include "ai-workspace.modelMaxModelLen" . | trim | int }}
+    {{- if gt $maxLen 0 }}
+    - "--max-model-len={{ $maxLen }}"
+    {{- end }}
     command:
     - python
     - -m
