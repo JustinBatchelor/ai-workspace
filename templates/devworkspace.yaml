@@ -51,6 +51,21 @@ spec:
           value: "http://{{ .Values.aiModel.name }}-predictor:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
+        {{- if .Values.continuedev.enabled }}
+        - name: DEFAULT_EXTENSIONS
+          value: "/tmp/continue.vsix"
+        {{- end }}
+    {{- if .Values.continuedev.enabled }}
+    commands:
+    - id: install-continue-extension
+      exec:
+        component: tools
+        commandLine: |
+          curl -L "https://open-vsx.org/api/Continue/continue/linux-x64/{{ .Values.continuedev.version }}/file/Continue.continue-{{ .Values.continuedev.version }}@linux-x64.vsix" -o /tmp/continue.vsix
+    events:
+      postStart:
+      - install-continue-extension
+    {{- end }}
   contributions:
   - name: editor
     uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
