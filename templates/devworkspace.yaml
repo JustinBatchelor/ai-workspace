@@ -58,4 +58,7 @@ spec:
           value: "http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
+  contributions:
+  - name: editor
+    uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
 {{- end }}

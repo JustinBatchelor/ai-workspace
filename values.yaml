@@ -65,6 +65,7 @@ editor:
 # ---------- Dev Spaces (only used when editor.type == "devspace") ----------
 devspaces:
   image: "registry.redhat.io/devspaces/udi-rhel9:latest"
+  cheCodeEditorUri: "https://eclipse-che.github.io/che-plugin-registry/main/v3/plugins/che-incubator/che-code/latest/devfile.yaml"
   resources:
     requests:
       cpu: "1"
