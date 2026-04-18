@@ -30,10 +30,6 @@ spec:
     components:
     - name: tools
       attributes:
-        {{- if .Values.continuedev.enabled }}
-        che-code.eclipse.org/vscode-extensions:
-          - https://open-vsx.org/api/Continue/continue/latest
-        {{- end }}
         container-overrides:
           volumeMounts:
           {{- if .Values.continuedev.enabled }}
