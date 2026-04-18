@@ -1,18 +1,19 @@
 {{- if and .Values.editorDeployment.enabled (eq .Values.editor.type "devspace") }}
 {{- $dwName := include "ai-workspace.devworkspaceName" . -}}
 {{- $continueConfigName := include "ai-workspace.continueConfigName" . -}}
-apiVersion: workspace.devfile.io/v1alpha2
 kind: DevWorkspace
+apiVersion: workspace.devfile.io/v1alpha2
 metadata:
   name: {{ $dwName }}
   namespace: {{ .Values.devspacesNamespace }}
-  annotations:
-    che.eclipse.org/che-editor: che-incubator/che-code/latest
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 spec:
-  started: true
   routingClass: che
+  started: true
+  contributions:
+    - name: ide
+      uri: {{ .Values.devspaces.editorContributionUri }}
   template:
     attributes:
       controller.devfile.io/storage-type: per-user
@@ -26,39 +27,36 @@ spec:
               defaultMode: 420
       {{- end }}
     projects:
-    - name: project
-      git:
-        remotes:
-          origin: {{ .Values.gitRepo | quote }}
-        checkoutFrom:
-          revision: {{ .Values.gitBranch | quote }}
+      - name: project
+        git:
+          remotes:
+            origin: {{ .Values.gitRepo | quote }}
+          checkoutFrom:
+            revision: {{ .Values.gitBranch | quote }}
     components:
-    - name: tools
-      {{- if .Values.continuedev.enabled }}
-      attributes:
-        container-overrides:
-          volumeMounts:
-          - name: continue-config
-            mountPath: /home/user/.continue/config.yaml
-            subPath: config.yaml
-            readOnly: false
-      {{- end }}
-      container:
-        image: {{ .Values.devspaces.image }}
-        memoryRequest: {{ .Values.devspaces.resources.requests.memory }}
-        memoryLimit: {{ .Values.devspaces.resources.limits.memory }}
-        cpuRequest: {{ .Values.devspaces.resources.requests.cpu | quote }}
-        cpuLimit: {{ .Values.devspaces.resources.limits.cpu | quote }}
-        mountSources: true
-        sourceMapping: /projects
-        env:
-        - name: HOST_USERS
-          value: "true"
-        - name: MODEL_ENDPOINT
-          value: "http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080"
-        - name: MODEL_NAME
-          value: {{ .Values.aiModel.name | quote }}
-  contributions:
-  - name: editor
-    uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
+      - name: tools
+        {{- if .Values.continuedev.enabled }}
+        attributes:
+          container-overrides:
+            volumeMounts:
+            - name: continue-config
+              mountPath: /home/user/.continue/config.yaml
+              subPath: config.yaml
+              readOnly: false
+        {{- end }}
+        container:
+          image: {{ .Values.devspaces.image }}
+          memoryRequest: {{ .Values.devspaces.resources.requests.memory }}
+          memoryLimit: {{ .Values.devspaces.resources.limits.memory }}
+          cpuRequest: {{ .Values.devspaces.resources.requests.cpu | quote }}
+          cpuLimit: {{ .Values.devspaces.resources.limits.cpu | quote }}
+          mountSources: true
+          sourceMapping: /projects
+          env:
+            - name: CHE_DASHBOARD_URL
+              value: {{ .Values.devspaces.dashboardUrl }}
+            - name: MODEL_ENDPOINT
+              value: "http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080"
+            - name: MODEL_NAME
+              value: {{ .Values.aiModel.name | quote }}
 {{- end }}
