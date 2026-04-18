@@ -30,6 +30,10 @@ spec:
     components:
     - name: tools
       attributes:
+        {{- if .Values.continuedev.enabled }}
+        che-code.eclipse.org/vscode-extensions:
+          - https://open-vsx.org/api/Continue/continue/latest
+        {{- end }}
         container-overrides:
           volumeMounts:
           {{- if .Values.continuedev.enabled }}
@@ -51,10 +55,6 @@ spec:
           value: "http://{{ .Values.aiModel.name }}-predictor:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
-        {{- if .Values.continuedev.enabled }}
-        - name: DEFAULT_EXTENSIONS
-          value: "continue.continue"
-        {{- end }}
   contributions:
   - name: editor
     uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
