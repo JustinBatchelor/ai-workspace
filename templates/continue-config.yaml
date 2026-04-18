@@ -3,6 +3,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "ai-workspace.continueConfigName" . }}
+  {{- if eq .Values.editor.type "devspace" }}
+  namespace: {{ .Values.devspacesNamespace }}
+  {{- end }}
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 data:
@@ -14,7 +17,11 @@ data:
       - name: {{ include "ai-workspace.modelDisplayName" . | trim }}
         provider: openai
         model: {{ .Values.aiModel.name }}
+        {{- if eq .Values.editor.type "devspace" }}
+        apiBase: http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080/v1
+        {{- else }}
         apiBase: http://{{ .Values.aiModel.name }}-predictor:8080/v1
+        {{- end }}
         apiKey: EMPTY
         roles:
           - chat

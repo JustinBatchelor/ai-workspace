@@ -5,6 +5,7 @@ apiVersion: workspace.devfile.io/v1alpha2
 kind: DevWorkspace
 metadata:
   name: {{ $dwName }}
+  namespace: {{ .Values.devspacesNamespace }}
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 spec:
@@ -48,7 +49,7 @@ spec:
         sourceMapping: /projects
         env:
         - name: MODEL_ENDPOINT
-          value: "http://{{ .Values.aiModel.name }}-predictor:8080"
+          value: "http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
   contributions:
