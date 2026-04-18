@@ -6,6 +6,8 @@ kind: DevWorkspace
 metadata:
   name: {{ $dwName }}
   namespace: {{ .Values.devspacesNamespace }}
+  annotations:
+    che.eclipse.org/che-editor: che-incubator/che-code/latest
   labels:
     {{- include "ai-workspace.labels" . | nindent 4 }}
 spec:
@@ -14,6 +16,7 @@ spec:
   template:
     attributes:
       controller.devfile.io/storage-type: per-user
+      {{- if .Values.continuedev.enabled }}
       pod-overrides:
         spec:
           volumes:
@@ -21,6 +24,7 @@ spec:
             configMap:
               name: {{ $continueConfigName }}
               defaultMode: 420
+      {{- end }}
     projects:
     - name: project
       git:
@@ -30,15 +34,15 @@ spec:
           revision: {{ .Values.gitBranch | quote }}
     components:
     - name: tools
+      {{- if .Values.continuedev.enabled }}
       attributes:
         container-overrides:
           volumeMounts:
-          {{- if .Values.continuedev.enabled }}
           - name: continue-config
             mountPath: /home/user/.continue/config.yaml
             subPath: config.yaml
             readOnly: false
-          {{- end }}
+      {{- end }}
       container:
         image: {{ .Values.devspaces.image }}
         memoryRequest: {{ .Values.devspaces.resources.requests.memory }}
@@ -48,11 +52,10 @@ spec:
         mountSources: true
         sourceMapping: /projects
         env:
+        - name: HOST_USERS
+          value: "true"
         - name: MODEL_ENDPOINT
           value: "http://{{ .Values.aiModel.name }}-predictor.{{ .Values.username }}-ai-ws.svc.cluster.local:8080"
         - name: MODEL_NAME
           value: {{ .Values.aiModel.name | quote }}
-  contributions:
-  - name: editor
-    uri: {{ .Values.devspaces.cheCodeEditorUri | quote }}
 {{- end }}
